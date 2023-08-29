@@ -15,7 +15,6 @@ class UniversityController extends Controller
     {
         $this->universityService = $university;
     }
-
     public function index()
     {
         try {
