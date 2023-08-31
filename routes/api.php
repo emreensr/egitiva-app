@@ -1,15 +1,18 @@
 <?php
 
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\SampleDataController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CityController;
+use App\Http\Controllers\SampleDataController;
+use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\DistrictController;
 use App\Http\Controllers\API\DepartmentController;
 use App\Http\Controllers\API\UniversityController;
+use App\Http\Controllers\API\CourseLevelController;
+use App\Http\Controllers\API\SubCategoryController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 
 /*
@@ -62,4 +65,11 @@ Route::middleware(['cors'])->group(function () {
     // UNIVERSITY
     Route::get('universities', [UniversityController::class, 'index']);
     Route::get('university/{university_id}/departments', [DepartmentController::class, 'departmentsByUniversity']);
+
+    // CATEGORY
+    Route::get('categories', [CategoryController::class, 'index']);
+    Route::get('category/{category_id}/sub_categories', [SubCategoryController::class, 'subCategoriesByCategory']);
+    Route::get('category/{category_id}/levels', [CourseLevelController::class, 'levelsByCategory']);
+
+
 });
