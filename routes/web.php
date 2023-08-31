@@ -9,6 +9,7 @@ use App\Http\Controllers\Logs\AuditLogsController;
 use App\Http\Controllers\Logs\SystemLogsController;
 use App\Http\Controllers\Account\SettingsController;
 use App\Http\Controllers\Auth\SocialiteLoginController;
+use App\Http\Controllers\CourseLevelController;
 use App\Http\Controllers\Documentation\ReferencesController;
 use App\Http\Controllers\Documentation\LayoutBuilderController;
 
@@ -77,6 +78,15 @@ Route::prefix('admin')->group(function () {
         Route::get('edit-sub-categories/{id}', [SubCategoryController::class, 'edit'])->name('subCategories.edit');
         Route::post('update-sub-categories/{id}', [SubCategoryController::class, 'update'])->name('subCategories.update');
         Route::delete('delete-sub-categories/{id}', [SubCategoryController::class, 'delete'])->name('subCategories.delete');
+
+
+        // COURSE LEVEL
+        Route::get('course-levels', [CourseLevelController::class, 'index'])->name('courseLevel.index');
+        Route::get('course-levels/{category_id}', [CourseLevelController::class, 'get'])->name('getCourseLevels.get');
+        Route::post('add-course-levels', [CourseLevelController::class, 'store'])->name('courseLevel.store');
+        Route::get('edit-course-levels/{id}', [CourseLevelController::class, 'edit'])->name('courseLevel.edit');
+        Route::post('update-course-levels/{id}', [CourseLevelController::class, 'update'])->name('courseLevel.update');
+        Route::delete('delete-course-levels/{id}', [CourseLevelController::class, 'delete'])->name('courseLevel.delete');
 
 
         // Logs pages

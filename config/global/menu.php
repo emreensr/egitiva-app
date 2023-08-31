@@ -228,7 +228,7 @@ return array(
                     ),
                     array(
                         'title'  => 'Seviyeler',
-                        'path'   => 'admin/levels',
+                        'path'   => 'admin/course-levels',
                         'bullet' => '<span class="bullet bullet-dot"></span>',
                     )
                 ),

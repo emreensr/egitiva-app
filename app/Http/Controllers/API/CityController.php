@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use Exception;
 use Illuminate\Http\Request;
 use App\Services\CityService;
 use App\Http\Controllers\Controller;
