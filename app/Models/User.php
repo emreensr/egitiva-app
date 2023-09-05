@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
+use Spatie\Permission\Traits\HasRoles;
 use App\Core\Traits\SpatieLogsActivity;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable;
-    use SpatieLogsActivity;
-    use HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
 
     /**
      * The attributes that are mass assignable.
@@ -78,7 +79,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return asset($this->info->avatar_url);
         }
 
-        return asset(theme()->getMediaUrlPath().'avatars/blank.png');
+        return asset(theme()->getMediaUrlPath() . 'avatars/blank.png');
     }
 
     /**
@@ -89,5 +90,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function info()
     {
         return $this->hasOne(UserInfo::class);
+    }
+
+    public function students(): HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    public function courseRequests()
+    {
+        return $this->hasMany(CourseRequests::class);
     }
 }
