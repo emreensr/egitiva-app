@@ -19,4 +19,39 @@ class CourseRequests extends Model
         'expectations'
     ];
 
+    public function locations()
+    {
+        return $this->belongsToMany(Location::class, 'course_locations', 'course_id', 'location_id')->withTimestamps();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function subCategory()
+    {
+        return $this->belongsTo(SubCategory::class);
+    }
+
+    public function level()
+    {
+        return $this->belongsTo(CourseLevel::class);
+    }
+
 }

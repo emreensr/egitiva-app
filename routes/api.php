@@ -10,6 +10,8 @@ use App\Http\Controllers\API\DepartmentController;
 use App\Http\Controllers\API\UniversityController;
 use App\Http\Controllers\API\CourseLevelController;
 use App\Http\Controllers\API\SubCategoryController;
+use App\Http\Controllers\API\CourseRequestController;
+use App\Http\Controllers\API\CourseLocationController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -70,6 +72,10 @@ Route::middleware(['cors'])->group(function () {
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('category/{category_id}/sub_categories', [SubCategoryController::class, 'subCategoriesByCategory']);
     Route::get('category/{category_id}/levels', [CourseLevelController::class, 'levelsByCategory']);
+  
+    // COURSE LOCATION
+    Route::get('course-locations', [CourseLocationController::class, 'index']);
 
-
+    // COURSE REQUESTS
+    Route::get('course-requests', [CourseRequestController::class, 'index']);
 });

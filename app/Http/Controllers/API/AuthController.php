@@ -57,7 +57,6 @@ class AuthController extends Controller
 
     public function studentRegister(Request $request)
     {
-        dd($request->all());
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|between:2,100',
             'last_name' => 'required|string|between:2,100',
@@ -81,6 +80,12 @@ class AuthController extends Controller
             ['password' => bcrypt($request->password)]
         ));
 
+        $user->students()->create([
+            'phone' => $request->phone,
+            'city_id' => $request->city_id,
+            'district_id' => $request->district_id,
+        ]);
+
         $course_request = new CourseRequests();
         $course_request->user_id = $user->id;
         $course_request->category_id = $request->category_id;
@@ -91,21 +96,16 @@ class AuthController extends Controller
         $course_request->expectations = $request->expectations;
         $course_request->save();
 
+        $course_request->locations()->attach($request->location);
+
         $token = $user->createToken('authToken')->plainTextToken;
 
         // Mail::to($user->email)->send(new WelcomeMail($user));
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'User created successfully',
-            'details' => [
-                'user' => $user,
-            ],
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
-        ]);
+            'user' => new UserResource($user),
+            'access_token' => $token,
+        ], 200);
     }
 
     public function teacherRegister(Request $request)
