@@ -8,7 +8,7 @@ class SubCategoryService
 {
     public function list($category_id)
     {
-        $category = Category::findOrFail($category_id);
+        $category = Category::with('subCategories')->findOrFail($category_id);
 
         return $category->subCategories;
     }

@@ -27,15 +27,4 @@ class CategoryController extends Controller
             return response(['status' => false, 'message' => $exception->getMessage()], 422);
         }
     }
-
-    public function subCategoriesByCategory($category_id)
-    {
-        try {
-            return CategoryResource::make(
-                $this->categoryService->getSubCategories($category_id)
-            );
-        } catch (Exception $exception) {
-            return response(['status' => false, 'message' => $exception->getMessage()], 422);
-        }
-    }
 }

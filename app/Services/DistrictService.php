@@ -13,7 +13,7 @@ class DistrictService
 {
     public function list($city_id)
     {
-        $city = City::findOrFail($city_id);
+        $city = City::with('districts')->findOrFail($city_id);
 
         return $city->districts;
     }

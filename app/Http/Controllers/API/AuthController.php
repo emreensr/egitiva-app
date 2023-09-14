@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use Hash;
+use Exception;
 use Validator;
 use App\Models\User;
 use App\Models\Teacher;
@@ -11,9 +12,11 @@ use App\Mail\WelcomeMail;
 use Illuminate\Http\Request;
 use App\Models\CourseRequests;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Requests\UserLoginRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Password;
 
@@ -24,50 +27,42 @@ class AuthController extends Controller
         $this->middleware('auth:sanctum', ['except' => ['login', 'studentRegister', 'teacherRegister', 'forgotPassword', 'resetPassword']]);
     }
 
-    public function login(Request $request)
+    public function login(UserLoginRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+        try {
+            $user = User::where('email', $request->input('email'))->first();
 
-        $user = User::where([
-            'email' => $request->email
-        ])->first();
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Kullanıcı bulunamadı.'
+                ], 404);
+            }
 
-        if ($user) {
             if (!Auth::attempt($request->only('email', 'password'))) {
                 return response()->json([
                     'message' => 'Kullanıcı bilgileri yanlış.'
                 ], 401);
             }
-
             $token = $user->createToken('authToken')->plainTextToken;
 
             return response()->json([
+                'user' => new UserResource($user),
                 'access_token' => $token,
-                'token_type' => 'Bearer',
-                'details' => [
-                    'user' => $user,
-                ],
-
             ], 200);
-        } else {
-            return response()->json(['error' => 'Kullanıcı bilgileri yanlış!'], 401);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
     }
 
     public function studentRegister(Request $request)
     {
+        dd($request->all());
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|between:2,100',
             'last_name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|confirmed|min:6',
+            'password' => 'required|string|min:6',
             'phone' => 'required|string|min:6|max:11',
             'category_id' => 'required|integer',
             'sub_category_id' => 'required|integer',
@@ -111,8 +106,6 @@ class AuthController extends Controller
                 'type' => 'bearer',
             ]
         ]);
-
-        return $this->createNewToken($user);
     }
 
     public function teacherRegister(Request $request)
