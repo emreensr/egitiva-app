@@ -6,6 +6,7 @@ use Hash;
 use Exception;
 use Validator;
 use App\Models\User;
+use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\UserInfo;
 use App\Mail\WelcomeMail;
@@ -218,6 +219,31 @@ class AuthController extends Controller
             'authorisation' => [
                 'token' => $token,
                 'type' => 'bearer',
+            ]
+        ]);
+    }
+
+    public function updateImage(Request $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+
+           if ($request->avatar) {
+            if ($avatar = $this->upload()) {
+                if (request()->hasFile('avatar')) {
+                    if ($user->avatar) {
+                        File::delete($user->avatar);
+                    }
+                }
+                $user->avatar = $avatar;
+            }
+        }
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Avatar güncellendi.',
+            'details' => [
+                'user' =>  $user
             ]
         ]);
     }

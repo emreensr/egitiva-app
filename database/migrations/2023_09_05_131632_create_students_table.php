@@ -16,7 +16,6 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->text('avatar')->nullable();
             $table->string('phone')->nullable();
             $table->integer('city_id')->nullable();
             $table->integer('district_id')->nullable();

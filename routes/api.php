@@ -57,6 +57,7 @@ Route::middleware(['cors'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/update', [AuthController::class, 'update']);
     Route::post('/update-user-info', [AuthController::class, 'updateUserInfo']);
+    Route::post('/update-student-image', [AuthController::class, 'updateImage']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/user-profile', [AuthController::class, 'userProfile']);
 
@@ -72,7 +73,7 @@ Route::middleware(['cors'])->group(function () {
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('category/{category_id}/sub_categories', [SubCategoryController::class, 'subCategoriesByCategory']);
     Route::get('category/{category_id}/levels', [CourseLevelController::class, 'levelsByCategory']);
-  
+
     // COURSE LOCATION
     Route::get('course-locations', [CourseLocationController::class, 'index']);
 
