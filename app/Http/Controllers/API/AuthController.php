@@ -64,6 +64,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|min:6',
             'phone' => 'required|string|min:6|max:11',
+            'user_type' => 'required|string',
             'category_id' => 'required|integer',
             'sub_category_id' => 'required|integer',
             'level_id' => 'required|integer',
@@ -116,7 +117,8 @@ class AuthController extends Controller
             'last_name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|confirmed|min:6',
-            'phone' => 'required|string'
+            'phone' => 'required|string',
+            'user_type' => 'required|string'
         ]);
 
         if ($validator->fails()) {
