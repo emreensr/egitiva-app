@@ -116,7 +116,7 @@ class AuthController extends Controller
             'last_name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|confirmed|min:6',
-            'phone' => 'required|string|min:6|max:11'
+            'phone' => 'required|string'
         ]);
 
         if ($validator->fails()) {
@@ -128,27 +128,18 @@ class AuthController extends Controller
             ['password' => bcrypt($request->password)]
         ));
 
-        $teacher = new Teacher();
-        $teacher->user_id = $user->id;
-        $teacher->save();
+        $user->teacher()->create([
+            'phone' => $request->phone
+        ]);
 
         $token = $user->createToken('authToken')->plainTextToken;
 
         // Mail::to($user->email)->send(new WelcomeMail($user));
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'User created successfully',
-            'details' => [
-                'user' => $user,
-            ],
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
-        ]);
-
-        return $this->createNewToken($user);
+            'user' => new UserResource($user),
+            'access_token' => $token,
+        ], 200);
     }
 
     public function forgotPassword(Request $request)
