@@ -56,10 +56,13 @@ Route::middleware(['cors'])->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/update', [AuthController::class, 'update']);
-    Route::post('/update-user-info', [AuthController::class, 'updateUserInfo']);
+    Route::post('/update-student-info', [AuthController::class, 'updateStudentInfo']);
     Route::post('/update-student-image', [AuthController::class, 'updateImage']);
+    Route::post('/update-teacher-info', [AuthController::class, 'updateTeacherInfo']);
+    Route::post('/update-teacher-introduce-info', [AuthController::class, 'updateTeacherIntroduceInfo']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/user-profile', [AuthController::class, 'userProfile']);
+    Route::get('/get-user-details', [AuthController::class, 'getUserDetails']);
 
     // CITY
     Route::get('cities', [CityController::class, 'index']);

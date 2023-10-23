@@ -22,4 +22,13 @@ class Student extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
 }

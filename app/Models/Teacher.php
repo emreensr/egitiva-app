@@ -22,4 +22,13 @@ class Teacher extends Model
         'about',
         'experience'
     ];
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
 }

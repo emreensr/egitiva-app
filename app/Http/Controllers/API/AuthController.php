@@ -47,10 +47,22 @@ class AuthController extends Controller
             }
             $token = $user->createToken('authToken')->plainTextToken;
 
+            if ($user->user_type === 'student') {
+                $userInfo = $user->students;
+            } elseif ($user->user_type === 'teacher') {
+                $userInfo = $user->teacher;
+            } else {
+                return response()->json(['error' => 'Kullanıcının geçerli bir rolü yok.'], 400);
+            }
+
             return response()->json([
-                'user' => new UserResource($user),
                 'access_token' => $token,
+                'details' => [
+                    'user' => new UserResource($user),
+                    'userInfo' => $userInfo,
+                ]
             ], 200);
+
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
@@ -63,7 +75,7 @@ class AuthController extends Controller
             'last_name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|min:6',
-            'phone' => 'required|string|min:6|max:11',
+            'phone' => 'required|string',
             'user_type' => 'required|string',
             'category_id' => 'required|integer',
             'sub_category_id' => 'required|integer',
@@ -82,11 +94,14 @@ class AuthController extends Controller
             ['password' => bcrypt($request->password)]
         ));
 
-        $user->students()->create([
+
+        $student = new Student([
+            'user_id' => $user->id,
             'phone' => $request->phone,
             'city_id' => $request->city_id,
             'district_id' => $request->district_id,
         ]);
+        $student->save();
 
         $course_request = new CourseRequests();
         $course_request->user_id = $user->id;
@@ -105,8 +120,11 @@ class AuthController extends Controller
         // Mail::to($user->email)->send(new WelcomeMail($user));
 
         return response()->json([
-            'user' => new UserResource($user),
             'access_token' => $token,
+            'details' => [
+                'user' => new UserResource($user),
+                'userInfo' => $student,
+                ]
         ], 200);
     }
 
@@ -130,17 +148,22 @@ class AuthController extends Controller
             ['password' => bcrypt($request->password)]
         ));
 
-        $user->teacher()->create([
+        $teacher = new Teacher([
+            'user_id' => $user->id,
             'phone' => $request->phone
         ]);
+        $teacher->save();
 
         $token = $user->createToken('authToken')->plainTextToken;
 
         // Mail::to($user->email)->send(new WelcomeMail($user));
 
         return response()->json([
-            'user' => new UserResource($user),
             'access_token' => $token,
+            'details' => [
+                'user' => new UserResource($user),
+                'userInfo' => $teacher,
+                ]
         ], 200);
     }
 
@@ -241,107 +264,210 @@ class AuthController extends Controller
         ]);
     }
 
-    public function updateUserInfo(Request $request)
+    public function getUserDetails(Request $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+
+        if ($user->user_type === 'student') {
+              $userInfo = $user->students;
+        } elseif ($user->user_type === 'teacher') {
+              $userInfo = $user->teacher;
+        } else {
+            return response()->json(['error' => 'Kullanıcının geçerli bir rolü yok.'], 400);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Avatar güncellendi.',
+            'details' => [
+                'user' =>  $user,
+                'userInfo' => $userInfo
+            ]
+        ]);
+    }
+
+    public function updateStudentInfo(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'avatar' => 'file|nullable',
-            'company' => 'string|min:6|nullable',
-            'phone' => 'string|min:6|nullable',
-            'website' => 'string|nullable',
-            'country' => 'string|nullable',
-            'ord_state' => 'integer|nullable',
-            'ord_city' => 'integer|nullable',
-            'ord_county' => 'integer|nullable',
-            'ord_street' => 'string|nullable',
-            'ord_location' => 'string|nullable',
-            'ord_houseNumber' => 'string|nullable',
-            'ord_postcode' => 'string|nullable',
-            'sameAddress' => 'boolean|nullable',
-            'bil_state' => 'integer|nullable',
-            'bil_city' => 'integer|nullable',
-            'bil_county' => 'integer|nullable',
-            'bil_street' => 'string|nullable',
-            'bil_location' => 'string|nullable',
-            'bil_houseNumber' => 'string|nullable',
-            'bil_postcode' => 'string|nullable',
-            'language' => 'string|nullable',
-            'timezone' => 'string|nullable',
-            'currency' => 'string|nullable',
-            'communication' => 'string|nullable',
-            'marketing' => 'boolean|nullable',
+            'first_name' => 'required|string|between:2,100',
+            'last_name' => 'required|string|between:2,100',
+            'phone' => 'required|string',
+            'city_id' => 'required|integer',
+            'district_id' => 'required|integer',
         ]);
+
+        $user = Auth::guard('sanctum')->user();
+
+        $validator->sometimes('email', 'required|string|email|max:100|unique:users', function ($input) use ($user) {
+            return $input->email !== $user->email;
+        });
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
 
         if (!Auth::guard('sanctum')->check()) {
-            // User is not authenticated.
             return response()->json([
                 'error' => 'User with this token is not found or not authenticated!'
             ], 404);
         }
 
-        $user = Auth::guard('sanctum')->user();
+        $student = Student::where('user_id', $user->id)->first();
 
-        $userInfo = UserInfo::where('user_id', $user->id)->first();
-        if (!$userInfo) {
-            $userInfo = new UserInfo();
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+        ]);
+
+        if ($student) {
+            $student->update([
+                'phone' => $request->phone,
+                'city_id' => $request->city_id,
+                'district_id' => $request->district_id,
+            ]);
+        } else {
+            $student = new Student([
+                'phone' => $request->phone,
+                'city_id' => $request->city_id,
+                'district_id' => $request->district_id,
+            ]);
+            $user->students()->save($student);
         }
 
-        // include to save avatar
-        if ($request->avatar) {
-            if ($avatar = $this->upload()) {
-                if (request()->hasFile('avatar')) {
-                    if ($userInfo->avatar) {
-                        File::delete($userInfo->avatar);
-                    }
-                }
-                $userInfo->avatar = $avatar;
-            }
-        }
-
-        $userInfo->user_id = $user->id;
-        $userInfo->company = $request->company;
-        $userInfo->phone = $request->phone;
-        $userInfo->website = $request->website;
-        $userInfo->ord_state = $request->ord_state;
-        $userInfo->ord_city = $request->ord_city;
-        $userInfo->ord_county = $request->ord_county;
-        $userInfo->ord_street = $request->ord_street;
-        $userInfo->ord_location = $request->ord_location;
-        $userInfo->ord_houseNumber = $request->ord_houseNumber;
-        $userInfo->ord_postcode = $request->ord_postcode;
-        $userInfo->sameAddress = $request->sameAddress;
-        $userInfo->bil_state = isset($request->bil_state) ? $request->bil_state : $request->ord_state;
-        $userInfo->bil_city = isset($request->bil_city) ? $request->bil_city : $request->ord_city;
-        $userInfo->bil_county = isset($request->bil_county) ? $request->bil_county : $request->ord_county;
-        $userInfo->bil_street = isset($request->bil_street) ? $request->bil_street : $request->ord_street;
-        $userInfo->bil_location = isset($request->bil_location) ? $request->bil_location : $request->ord_location;
-        $userInfo->bil_houseNumber = isset($request->bil_houseNumber) ? $request->bil_houseNumber : $request->ord_houseNumber;
-        $userInfo->bil_postcode = isset($request->bil_postcode) ? $request->bil_postcode : $request->ord_postcode;
-        $userInfo->communication = $request->communication;
-        $userInfo->marketing = $request->marketing;
-
-        $userInfo->country = $request->country ?? 'DE';
-        $userInfo->language = $request->language ?? 'de';
-        $userInfo->timezone = $request->timezone ?? 'Berlin';
-        $userInfo->currency = $request->currency ?? 'EUR';
-
-        $userInfo->save();
-
-        $user = User::findOrFail($userInfo->user_id);
+        $student = Student::where('user_id', $user->id)->first();
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'User\'s Information updated successfully',
             'details' => [
-                'user' => $user,
-                'user_info' =>  $userInfo
+                'user' => new UserResource($user),
+                'userInfo' =>  $student
             ]
-        ]);
+        ], 200);
     }
 
+    public function updateTeacherInfo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|between:2,100',
+            'last_name' => 'required|string|between:2,100',
+            'phone' => 'required|string',
+            'city_id' => 'required|integer',
+            'district_id' => 'required|integer',
+            'birth_date' => 'required|string',
+        ]);
+
+        $user = Auth::guard('sanctum')->user();
+
+        $validator->sometimes('email', 'required|string|email|max:100|unique:users', function ($input) use ($user) {
+            return $input->email !== $user->email;
+        });
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'error' => 'User with this token is not found or not authenticated!'
+            ], 404);
+        }
+
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+        ]);
+
+        $teacher = Teacher::where('user_id', $user->id)->first();
+
+        $teacher->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+        ]);
+
+        if ($teacher) {
+            $teacher->update([
+                'phone' => $request->phone,
+                'city_id' => $request->city_id,
+                'district_id' => $request->district_id,
+                'birth_date' => $request->birth_date
+            ]);
+        } else {
+            $teacher = new Teacher([
+                'phone' => $request->phone,
+                'city_id' => $request->city_id,
+                'district_id' => $request->district_id,
+                'birth_date' => $request->birth_date
+            ]);
+            $user->teacher()->save($teacher);
+        }
+
+        $teacher = Teacher::where('user_id', $user->id)->first();
+
+        return response()->json([
+            'details' => [
+                'user' => new UserResource($user),
+                'userInfo' =>  $teacher
+            ]
+        ], 200);
+    }
+
+    public function updateTeacherIntroduceInfo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'university_id' => 'required|integer',
+            'department_id' => 'required|integer',
+            'education_status' => 'required|string',
+            'experience_year' => 'required|string',
+            'about' => 'required|string',
+            'experience' => 'required|string',
+        ]);
+
+        $user = Auth::guard('sanctum')->user();
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        if (!Auth::guard('sanctum')->check()) {
+            return response()->json([
+                'error' => 'User with this token is not found or not authenticated!'
+            ], 404);
+        }
+
+        $teacher = Teacher::where('user_id', $user->id)->first();
+
+        if ($teacher) {
+            $teacher->update([
+                'university_id' => $request->university_id,
+                'department_id' => $request->department_id,
+                'education_status' => $request->education_status,
+                'experience_year' => $request->experience_year,
+                'about' => $request->about,
+                'experience' => $request->experience
+            ]);
+        } else {
+            $teacher = new Teacher([
+                'university_id' => $request->university_id,
+                'department_id' => $request->department_id,
+                'education_status' => $request->education_status,
+                'experience_year' => $request->experience_year,
+                'about' => $request->about,
+                'experience' => $request->experience
+            ]);
+            $user->teacher()->save($teacher);
+        }
+
+        $teacher = Teacher::where('user_id', $user->id)->first();
+
+        return response()->json([
+            'details' => [
+                'user' => new UserResource($user),
+                'userInfo' =>  $teacher
+            ]
+        ], 200);
+    }
     public function upload($folder = 'images', $key = 'avatar', $validation = 'image|mimes:jpeg,png,jpg,gif,svg|max:2048|sometimes')
     {
         request()->validate([$key => $validation]);
