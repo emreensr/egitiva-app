@@ -5,6 +5,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CityController;
 use App\Http\Controllers\SampleDataController;
 use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\CheckoutController;
 use App\Http\Controllers\API\DistrictController;
 use App\Http\Controllers\API\DepartmentController;
 use App\Http\Controllers\API\UniversityController;
@@ -67,6 +68,9 @@ Route::middleware(['cors'])->group(function () {
     // CITY
     Route::get('cities', [CityController::class, 'index']);
     Route::get('city/{city_id}/districts', [DistrictController::class, 'districtsByCity']);
+
+    //CHECKOUT
+    Route::post('/checkout', [CheckoutController::class, 'checkout']);
 
     // UNIVERSITY
     Route::get('universities', [UniversityController::class, 'index']);

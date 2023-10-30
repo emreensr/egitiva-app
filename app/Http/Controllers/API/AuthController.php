@@ -176,9 +176,8 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return response()->json(['message' => 'The email does not exist in our system'], 404);
+            return response()->json(['message' => 'Lütfen farklı bir e-posta deneyiniz!'], 404);
         }
-
 
         $status = Password::sendResetLink(
             $request->only('email')
@@ -193,12 +192,16 @@ class AuthController extends Controller
 
     public function resetPassword(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+        
         $status = Password::reset($request->only('email', 'password', 'password_confirmation', 'token'), function ($user, $password) {
             $user->forceFill([
                 'password' => Hash::make($password)

@@ -10,11 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\PasswordReset;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
-
 
     /**
      * The attributes that are mass assignable.
@@ -59,6 +59,11 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->remember_token = $value;
     }
 
+    public function sendPasswordResetNotification($token)
+    {
+        $email = $this->email;
+        $this->notify(new PasswordReset($token, $email));
+    }
     /**
      * Get a fullname combination of first_name and last_name
      *
